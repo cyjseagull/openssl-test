@@ -1,0 +1,5 @@
+function(eth_apply TARGET REQUIRED)
+        target_include_directories(${TARGET} SYSTEM PUBLIC ${OPENSSL_INCLUDE_DIRS})
+        target_link_libraries(${TARGET} PUBLIC ${OPENSSL_LIBRARIES})
+        set_property(TARGET ${TARGET} PROPERTY INTERFACE_LINK_LIBRARIES ${OPENSSL_LIBRARIES} dl pthread)
+endfunction()

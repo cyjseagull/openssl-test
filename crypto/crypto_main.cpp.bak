@@ -1,0 +1,106 @@
+/**
+ * @CopyRight:
+ * FISCO-BCOS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * FISCO-BCOS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with FISCO-BCOS.  If not, see <http://www.gnu.org/licenses/>
+ * (c) 2016-2018 fisco-dev contributors.
+ *
+ * @brief: simple benchmark for crypto algorithm
+ *
+ * @file: crypto_main.cpp
+ * @author: catli
+ * @date 2019-09-19
+ */
+
+#include <libdevcore/Common.h>
+#include <libdevcrypto/AES.h>
+#include <libdevcrypto/Common.h>
+#include <libdevcrypto/Hash.h>
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <string>
+
+using namespace std;
+using namespace std::chrono;
+using namespace dev;
+using namespace boost;
+
+int main()
+{
+    auto repeatCount = 1000000;
+
+    auto version = string("");
+#ifdef FISCO_GM
+    version = " for GM";
+#endif
+
+    cout << "Testing encrypt/decrypt performace" << version << " ..." << endl;
+    cout << "[repeatCount] = " << repeatCount << endl;
+    auto key = string("0123456789ABCDEF");
+    auto data = string(
+        "A communication between President Donald Trump and a world leader prompted a "
+        "whistleblower complaint that is now at the center of a dispute between the director of "
+        "national intelligence and Congress, a source familiar with the case told CNN.");
+
+    auto encryptedData = string();
+    auto startTime = utcTime();
+    for (auto i = 0; i < repeatCount; ++i)
+    {
+        encryptedData = dev::aesCBCEncrypt(data, key);
+    }
+    auto endTime = utcTime();
+    auto encryptCost = endTime - startTime;
+    encryptCost = encryptCost == 0 ? 1 : encryptCost;
+    cout.precision(2);
+    cout << "[encryptPerformance] = " << fixed << repeatCount / ((double)encryptCost / 1000)
+         << " tps" << endl;
+
+    startTime = utcTime();
+    for (auto i = 0; i < repeatCount; ++i)
+    {
+        dev::aesCBCDecrypt(encryptedData, key);
+    }
+    endTime = utcTime();
+    auto decrtyptCost = endTime - startTime;
+    decrtyptCost = decrtyptCost == 0 ? 1 : decrtyptCost;
+    cout << "[decryptPerformance] = " << fixed << repeatCount / ((double)decrtyptCost / 1000)
+         << " tps" << endl;
+
+    repeatCount = 100000;
+    cout << "Testing sign/verify performance" << version << " ..." << endl;
+    cout << "[repeatCount] = " << repeatCount << endl;
+    auto keyPair = KeyPair::create();
+    auto hash = sha3(dev::ref(asBytes(data)));
+
+    Signature signature;
+    // startTime = utcTime();
+    // for (auto i = 0; i < repeatCount; ++i)
+    //{
+    signature = sign(keyPair.secret(), hash);
+    //}
+    // endTime = utcTime();
+    // auto signCost = endTime - startTime;
+    // cout << "[signPerformance] = " << repeatCount / ((double)signCost / 1000) << " tps"
+    //     << endl;
+
+    startTime = utcTime();
+    for (auto i = 0; i < repeatCount; ++i)
+    {
+        verify(keyPair.pub(), signature, hash);
+    }
+    endTime = utcTime();
+    auto verifyCost = endTime - startTime;
+    cout << "[verifyPerformance] = " << repeatCount / ((double)verifyCost / 1000) << " tps" << endl;
+
+    return 0;
+}
