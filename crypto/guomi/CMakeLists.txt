@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Top-level CMake file for FISCO-BCOS.
+# Link libraries into main.cpp to generate executable binrary fisco-bcos
 # ------------------------------------------------------------------------------
 # This file is part of FISCO-BCOS.
 #
@@ -18,8 +18,9 @@
 #
 # (c) 2016-2018 fisco-dev contributors.
 #------------------------------------------------------------------------------
-
-# generate executable binary fisco-bcos
-add_subdirectory(guomi)
-add_subdirectory(standard)
-
+file(GLOB SRC_LIST "*.cpp")
+file(GLOB HEADERS "*.h")
+add_executable(mini-guomi-crypto ${SRC_LIST} ${HEADERS})
+eth_use(mini-guomi-crypto OPTIONAL OpenSSL)
+target_link_libraries(mini-guomi-crypto PUBLIC devcore devcrypto)
+ 
